@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Physics Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #f4f6f8;
+      color: #222;
+    }
+    .quiz-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
+    }
+    h1 { text-align: center; }
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .options button:hover { background: #eef; }
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .correct { color: green; }
+    .incorrect { color: red; }
+    .hidden { display: none; }
+    #summary {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Physics Quiz</h1>
+  <div id="quiz" class="quiz-box">
+    <div id="question"></div>
+    <div class="options" id="options"></div>
+    <div id="feedback" class="feedback hidden"></div>
+    <button id="nextBtn" class="hidden">Next Question</button>
+  </div>
+  <div id="summary" class="hidden"></div>
+
+  <script>
+    const questions = [
+      {
+        q: "What is the key difference between distance and displacement?",
+        options: {
+          a: "Distance is a vector, displacement is a scalar.",
+          b: "Distance is the total path length; displacement is the change in position.",
+          c: "Distance is always positive, displacement can be positive or negative.",
+          d: "Both b and c"
+        },
+        answer: "d",
+        explanation: "Distance is path length (always positive). Displacement is change in position and can be positive or negative."
+      },
+      {
+        q: "What does average velocity tell you about an object's motion?",
+        options: {
+          a: "The exact speed at any given moment",
+          b: "The overall change in position over a time interval.",
+          c: "The total distance traveled.",
+          d: "How the object's velocity changed during the interval."
+        },
+        answer: "b",
+        explanation: "Average velocity = displacement / time."
+      },
+      // ... include all 70 questions here in same format ...
+    ];
+
+    let current = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+    const summaryEl = document.getElementById("summary");
+
+    function showQuestion() {
+      const q = questions[current];
+      questionEl.textContent = `Q${current+1}. ${q.q}`;
+      optionsEl.innerHTML = "";
+      for (const key of ["a","b","c","d"]) {
+        const btn = document.createElement("button");
+        btn.textContent = `${key}. ${q.options[key]}`;
+        btn.onclick = () => selectAnswer(key);
+        optionsEl.appendChild(btn);
+      }
+      feedbackEl.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+    }
+
+    function selectAnswer(choice) {
+      const q = questions[current];
+      feedbackEl.classList.remove("hidden");
+      if (choice === q.answer) {
+        feedbackEl.innerHTML = `<span class="correct">✅ Correct!</span>`;
+        score++;
+      } else {
+        feedbackEl.innerHTML = `<span class="incorrect">❌ Incorrect.</span> Correct answer: ${q.answer}. ${q.options[q.answer]}<br>
+                                Explanation: ${q.explanation}`;
+      }
+      nextBtn.classList.remove("hidden");
+    }
+
+    nextBtn.addEventListener("click", () => {
+      current++;
+      if (current < questions.length) {
+        showQuestion();
+      } else {
+        showSummary();
+      }
+    });
+
+    function showSummary() {
+      document.getElementById("quiz").classList.add("hidden");
+      summaryEl.classList.remove("hidden");
+      const percent = (score / questions.length * 100).toFixed(2);
+      summaryEl.innerHTML = `<h2>Quiz Completed!</h2>
+                             <p>Your Score: ${score} / ${questions.length}</p>
+                             <p>Percentage: ${percent}%</p>`;
+    }
+
+    // start
+    showQuestion();
+  </script>
+</body>
+</html>
