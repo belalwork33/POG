@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics for Oil and Gas Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-option.selected {
+            transform: scale(1.02);
+        }
+        .quiz-option.correct {
+            background-color: #D1FAE5; /* green-100 */
+            border-color: #10B981; /* green-500 */
+        }
+        .quiz-option.incorrect {
+            background-color: #FEE2E2; /* red-100 */
+            border-color: #EF4444; /* red-500 */
+        }
+        .explanation {
+            background-color: #F3F4F6; /* gray-100 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="quiz-container" class="w-full max-w-3xl bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Physics for Oil and Gas</h1>
+            <p class="text-gray-600 mb-8">Test your knowledge with 70 multiple-choice questions covering all units.</p>
+            <button id="start-btn" class="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-lg">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900">Question <span id="question-number"></span>/<span id="total-questions"></span></h2>
+                <div class="text-lg font-semibold text-blue-600">Score: <span id="score">0</span></div>
+            </div>
+            
+            <p id="question-text" class="text-lg text-gray-700 mb-6 min-h-[60px]"></p>
+            
+            <div id="options-container" class="space-y-4">
+                <!-- Options will be dynamically inserted here -->
+            </div>
+
+            <div id="feedback-container" class="mt-6 hidden">
+                 <div id="explanation-box" class="explanation p-4 rounded-lg border border-gray-200">
+                    <p id="explanation-text" class="text-gray-700"></p>
+                 </div>
+            </div>
+            
+            <button id="next-btn" class="w-full mt-8 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-lg hidden">Next Question</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Quiz Completed!</h1>
+            <p class="text-xl text-gray-600 mb-2">Your Final Score:</p>
+            <p class="text-5xl font-bold text-blue-600 mb-8"><span id="final-score"></span> / <span id="total-score"></span></p>
+            
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <button id="restart-btn" class="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300">Restart Quiz</button>
+                <button id="review-btn" class="w-full md:w-auto bg-gray-200 text-gray-800 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition-colors duration-300">Review Answers</button>
+            </div>
+        </div>
+        
+        <!-- Review Screen -->
+        <div id="review-screen" class="hidden">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6 text-center">Answer Review</h1>
+            <div id="review-content" class="space-y-6">
+                <!-- Review content will be dynamically inserted here -->
+            </div>
+             <button id="back-to-results-btn" class="w-full mt-8 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-lg">Back to Results</button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            // Unit 2: Motion in One Dimension (Easy - 4, Medium - 4, Challenging - 2)
+            {
+                question: "What is the key difference between distance and displacement?",
+                options: ["Distance is a vector, displacement is a scalar.", "Distance is the total path length; displacement is the change in position.", "Distance is always smaller than displacement.", "They are the same thing."],
+                correct: "B",
+                explanation: "Distance is a scalar quantity that measures the total path covered. Displacement is a vector quantity that measures the straight-line distance and direction from the start point to the end point.",
+                difficulty: "easy"
+            },
+            {
+                question: "Free fall refers to motion where:",
+                options: ["The only force acting on an object is gravity.", "An object falls with constant velocity.", "Air resistance is significant.", "An object is thrown upwards."],
+                correct: "A",
+                explanation: "Free fall is the idealized motion of an object where gravity is the only force acting upon it. Air resistance is ignored.",
+                difficulty: "easy"
+            },
+            {
+                question: "A runner starts from rest and accelerates uniformly to a speed of 8 m/s in 4 seconds. What is his acceleration?",
+                options: ["2 m/s²", "4 m/s²", "8 m/s²", "0.5 m/s²"],
+                correct: "A",
+                explanation: "Acceleration is the change in velocity divided by time. a = (v_f - v_i) / t = (8 m/s - 0 m/s) / 4 s = 2 m/s².",
+                difficulty: "easy"
+            },
+            {
+                question: "The difference between speed and velocity is that velocity includes:",
+                options: ["Magnitude only", "Direction only", "Both magnitude and direction", "Neither magnitude nor direction"],
+                correct: "C",
+                explanation: "Speed is a scalar quantity (magnitude only), while velocity is a vector quantity that includes both magnitude (speed) and direction.",
+                difficulty: "easy"
+            },
+            {
+                question: "A car accelerates uniformly from 2.0 m/s to 12.0 m/s in 5.0 s. What is the displacement traveled by the car?",
+                options: ["35 m", "50 m", "70 m", "25 m"],
+                correct: "A",
+                explanation: "Displacement can be calculated using the average velocity formula for constant acceleration: x = ((v_f + v_i) / 2) * t = ((12.0 + 2.0) / 2) * 5.0 = 7.0 * 5.0 = 35 m.",
+                difficulty: "medium"
+            },
+            {
+                question: "A ball is dropped from the top of a building and takes 4.0 s to hit the ground. How high is the building? (use g = 9.8 m/s²)",
+                options: ["39.2 m", "78.4 m", "19.6 m", "156.8 m"],
+                correct: "B",
+                explanation: "Using the free fall equation h = v_i*t + (1/2)gt². Since it's dropped, v_i = 0. So, h = (1/2) * 9.8 * (4.0)² = 4.9 * 16 = 78.4 m.",
+                difficulty: "medium"
+            },
+            {
+                question: "What is terminal velocity?",
+                options: ["The initial velocity of a falling object.", "The velocity at which an object stops falling.", "The constant velocity reached when the force of air resistance equals the force of gravity.", "The maximum possible velocity in a vacuum."],
+                correct: "C",
+                explanation: "Terminal velocity is reached when the downward force of gravity (weight) is balanced by the upward force of air resistance (drag). The net force is zero, so acceleration is zero, and the object falls at a constant velocity.",
+                difficulty: "medium"
+            },
+            {
+                question: "A car travels 120 m east and then 50 m west. What is the car's displacement?",
+                options: ["170 m East", "170 m West", "70 m East", "70 m West"],
+                correct: "C",
+                explanation: "Displacement is the net change in position. Let east be positive. Displacement = +120 m + (-50 m) = +70 m, which is 70 m East.",
+                difficulty: "medium"
+            },
+            {
+                question: "A ball is thrown downward with an initial velocity of 5.0 m/s from a height of 60 m. How long does it take to hit the ground? (use g = 9.8 m/s²)",
+                options: ["3.0 s", "4.0 s", "2.5 s", "3.5 s"],
+                correct: "A",
+                explanation: "Use the kinematic equation: h = v_i*t + (1/2)gt². This gives 60 = 5t + 4.9t². Rearranging into a quadratic equation 4.9t² + 5t - 60 = 0 and solving for t gives approximately 3.0 s (the positive root).",
+                difficulty: "challenging"
+            },
+            {
+                question: "A pot falls from a window 25.0 m above the sidewalk. What is its velocity just before it hits the ground? (use g = 9.8 m/s²)",
+                options: ["15.7 m/s", "22.1 m/s", "490 m/s", "9.8 m/s"],
+                correct: "B",
+                explanation: "Use the formula v_f = sqrt(2gh). v_f = sqrt(2 * 9.8 * 25.0) = sqrt(490) ≈ 22.1 m/s.",
+                difficulty: "challenging"
+            },
+
+            // Unit 3: Two-dimensional motion and vectors (Easy - 2, Medium - 3, Challenging - 1)
+            {
+                question: "Which of the following is a scalar quantity?",
+                options: ["Velocity", "Acceleration", "Force", "Speed"],
+                correct: "D",
+                explanation: "A scalar quantity has only magnitude. Speed, distance, and mass are scalars. Velocity, acceleration, and force are vectors because they have both magnitude and direction.",
+                difficulty: "easy"
+            },
+            {
+                question: "The resultant vector is:",
+                options: ["The difference between two vectors.", "The sum of two or more vectors.", "Always perpendicular to the original vectors.", "Always smaller than the original vectors."],
+                correct: "B",
+                explanation: "The resultant vector is the single vector that represents the combined effect (the sum) of two or more individual vectors.",
+                difficulty: "easy"
+            },
+            {
+                question: "A car travels 40 km east and then 30 km north. What is the magnitude of its resultant displacement?",
+                options: ["10 km", "50 km", "70 km", "35 km"],
+                correct: "B",
+                explanation: "The two displacement vectors form a right-angled triangle. The magnitude of the resultant is the hypotenuse, found using the Pythagorean theorem: R = sqrt(40² + 30²) = sqrt(1600 + 900) = sqrt(2500) = 50 km.",
+                difficulty: "medium"
+            },
+            {
+                question: "Find the components of a velocity vector of 100 km/h at an angle of 30° to the ground.",
+                options: ["Vx = 86.6 km/h, Vy = 50 km/h", "Vx = 50 km/h, Vy = 86.6 km/h", "Vx = 100 km/h, Vy = 30 km/h", "Vx = 30 km/h, Vy = 100 km/h"],
+                correct: "A",
+                explanation: "The horizontal component (Vx) is F * cos(θ) = 100 * cos(30°) ≈ 86.6 km/h. The vertical component (Vy) is F * sin(θ) = 100 * sin(30°) = 50 km/h.",
+                difficulty: "medium"
+            },
+            {
+                question: "A force of 100 N is applied at an angle of 60 degrees. What are its horizontal (x) and vertical (y) components?",
+                options: ["Fx=50N, Fy=86.6N", "Fx=86.6N, Fy=50N", "Fx=60N, Fy=40N", "Fx=100N, Fy=60N"],
+                correct: "A",
+                explanation: "The x-component is F * cos(θ) = 100 * cos(60°) = 50 N. The y-component is F * sin(θ) = 100 * sin(60°) ≈ 86.6 N.",
+                difficulty: "medium"
+            },
+            {
+                question: "A plane flies 300 km East, then 400 km at 45° North of East. What is the approximate magnitude of the resultant displacement?",
+                options: ["700 km", "500 km", "650 km", "600 km"],
+                correct: "C",
+                explanation: "First, resolve the second vector into components: x = 400*cos(45°) ≈ 282.8 km, y = 400*sin(45°) ≈ 282.8 km. Add the components: Total X = 300 + 282.8 = 582.8 km, Total Y = 282.8 km. Find the resultant magnitude: R = sqrt(582.8² + 282.8²) ≈ 648 km, which is closest to 650 km.",
+                difficulty: "challenging"
+            },
+
+            // Unit 4: Forces and Laws of Motion (Easy - 2, Medium - 3, Challenging - 1)
+            {
+                question: "Newton's First Law of Motion is also known as the law of:",
+                options: ["Action-Reaction", "Inertia", "Acceleration", "Friction"],
+                correct: "B",
+                explanation: "Newton's First Law states that an object will remain at rest or in uniform motion unless acted upon by a net external force. This property of resisting changes in motion is called inertia.",
+                difficulty: "easy"
+            },
+            {
+                question: "Friction is a force that:",
+                options: ["Always helps motion", "Always opposes motion", "Only exists between solids", "Is independent of the surfaces in contact"],
+                correct: "B",
+                explanation: "Friction is a resistive force that always acts in the direction opposite to the motion or attempted motion between surfaces in contact.",
+                difficulty: "easy"
+            },
+            {
+                question: "What net force is required to accelerate a car at a rate of 2 m/s² if the car has a mass of 3,000 kg?",
+                options: ["1500 N", "6000 N", "3000 N", "2 N"],
+                correct: "B",
+                explanation: "According to Newton's Second Law, Force = mass × acceleration. F = 3000 kg × 2 m/s² = 6000 N.",
+                difficulty: "medium"
+            },
+            {
+                question: "A 100 kg box rests on a surface. The coefficient of static friction is 0.4. What is the minimum horizontal force required to start moving the box? (g=9.8 m/s²)",
+                options: ["40 N", "98 N", "392 N", "400 N"],
+                correct: "C",
+                explanation: "The force of static friction is f = μN. The normal force N equals the weight (mg). N = 100 kg * 9.8 m/s² = 980 N. The minimum force to move it is f = 0.4 * 980 N = 392 N.",
+                difficulty: "medium"
+            },
+            {
+                question: "Newton's Third Law states that for every action, there is:",
+                options: ["An equal and opposite reaction.", "An equal reaction in the same direction.", "A smaller reaction in the opposite direction.", "A reaction only if the object moves."],
+                correct: "A",
+                explanation: "This is the definition of Newton's Third Law. Forces always occur in equal and opposite pairs.",
+                difficulty: "medium"
+            },
+            {
+                question: "A 10 kg block is pulled by a horizontal force of 50 N. The coefficient of kinetic friction is 0.2. What is the acceleration of the block? (g=9.8 m/s²)",
+                options: ["3.04 m/s²", "5.0 m/s²", "2.0 m/s²", "0 m/s²"],
+                correct: "A",
+                explanation: "First, find the frictional force: f = μN = μmg = 0.2 * 10 * 9.8 = 19.6 N. Then, find the net force: F_net = Applied Force - Frictional Force = 50 N - 19.6 N = 30.4 N. Finally, find acceleration: a = F_net / m = 30.4 N / 10 kg = 3.04 m/s².",
+                difficulty: "challenging"
+            },
+            
+            // Unit 6: Momentum and Collision (Easy - 3, Medium - 3, Challenging - 2)
+            {
+                question: "Momentum is defined as:",
+                options: ["The force acting on an object.", "The mass of an object multiplied by its velocity.", "The energy of an object in motion.", "The mass times acceleration of an object."],
+                correct: "B",
+                explanation: "The formula for momentum (p) is p = mv, where m is mass and v is velocity.",
+                difficulty: "easy"
+            },
+            {
+                question: "If two objects collide and stick together, the collision is classified as:",
+                options: ["Elastic", "Perfectly Inelastic", "Perfectly Elastic", "Reversible"],
+                correct: "B",
+                explanation: "In a perfectly inelastic collision, the objects stick together after colliding, and kinetic energy is not conserved, although momentum is.",
+                difficulty: "easy"
+            },
+            {
+                question: "In a closed system, the total momentum:",
+                options: ["Increases", "Decreases", "Remains constant", "Changes randomly"],
+                correct: "C",
+                explanation: "The law of conservation of momentum states that the total momentum of a closed system (with no external forces) remains constant before and after a collision.",
+                difficulty: "easy"
+            },
+            {
+                question: "A soccer ball with a mass of 0.5 kg is kicked with a velocity of 15 m/s. What is its momentum?",
+                options: ["2.5 kg·m/s", "5.0 kg·m/s", "7.5 kg·m/s", "30.0 kg·m/s"],
+                correct: "C",
+                explanation: "Momentum (p) = mass (m) × velocity (v). p = 0.5 kg × 15 m/s = 7.5 kg·m/s.",
+                difficulty: "medium"
+            },
+            {
+                question: "A baseball bat applies a force of 100 N to a ball for 0.02 seconds. What is the impulse delivered to the ball?",
+                options: ["0.5 Ns", "2.0 Ns", "50 Ns", "5000 Ns"],
+                correct: "B",
+                explanation: "Impulse (I) is the product of force (F) and the time interval (Δt) over which it acts. I = F × Δt = 100 N × 0.02 s = 2.0 Ns.",
+                difficulty: "medium"
+            },
+            {
+                question: "A 1,500 kg car moving at 10 m/s collides with a stationary 500 kg car. If they stick together, what is their final velocity?",
+                options: ["5 m/s", "7.5 m/s", "10 m/s", "15 m/s"],
+                correct: "B",
+                explanation: "Use conservation of momentum: m1v1 + m2v2 = (m1+m2)vf. (1500*10) + (500*0) = (1500+500)vf. 15000 = 2000*vf. vf = 15000 / 2000 = 7.5 m/s.",
+                difficulty: "medium"
+            },
+            {
+                question: "A 1 kg object moving at 10 m/s collides with a wall and bounces back with a velocity of -8 m/s. What is the change in momentum of the object?",
+                options: ["-2 kg·m/s", "-18 kg·m/s", "2 kg·m/s", "18 kg·m/s"],
+                correct: "B",
+                explanation: "Change in momentum (Δp) is m(v_f - v_i). Δp = 1 kg * (-8 m/s - 10 m/s) = 1 kg * (-18 m/s) = -18 kg·m/s.",
+                difficulty: "challenging"
+            },
+            {
+                question: "A 2.0 kg marble moving at 5.0 m/s collides elastically with a 4.0 kg marble at rest. After the collision, the 2.0 kg marble moves left at 1.0 m/s (-1.0 m/s). What is the velocity of the 4.0 kg marble?",
+                options: ["3.0 m/s", "4.0 m/s", "2.0 m/s", "1.5 m/s"],
+                correct: "A",
+                explanation: "By conservation of momentum: m1v1i + m2v2i = m1v1f + m2v2f. (2*5) + (4*0) = (2*-1) + (4*v2f). 10 = -2 + 4v2f. 12 = 4v2f. v2f = 3.0 m/s.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 7: Circular Motion and Gravitation (Easy - 1, Medium - 2, Challenging - 1)
+            {
+                question: "What two factors determine the magnitude of torque?",
+                options: ["Force and acceleration", "Mass and velocity", "Force and lever arm distance", "Gravity and mass"],
+                correct: "C",
+                explanation: "Torque is the rotational equivalent of force and is calculated as the product of the applied force and the perpendicular distance from the axis of rotation (lever arm).",
+                difficulty: "easy"
+            },
+            {
+                question: "A force of 20 N is applied at a perpendicular distance of 0.5 m from a pivot point. What is the torque?",
+                options: ["5 N·m", "10 N·m", "20 N·m", "40 N·m"],
+                correct: "B",
+                explanation: "Torque (τ) = Force (F) × lever arm (d). τ = 20 N × 0.5 m = 10 N·m.",
+                difficulty: "medium"
+            },
+            {
+                question: "If the length of a lever arm is doubled while keeping the force constant, what happens to the torque?",
+                options: ["It is halved.", "It remains the same.", "It doubles.", "It quadruples."],
+                correct: "C",
+                explanation: "Torque is directly proportional to the lever arm distance (τ = Fd). If d is doubled, τ is also doubled.",
+                difficulty: "medium"
+            },
+            {
+                question: "A force of 100 N is applied to a wrench at an angle of 30° to the handle. If the force is applied 0.2 m from the bolt, what is the torque produced?",
+                options: ["10 N·m", "17.3 N·m", "20 N·m", "5 N·m"],
+                correct: "A",
+                explanation: "The formula for torque is τ = Fd sin(θ), where θ is the angle between the force and the lever arm. Here, we must use the perpendicular component of the force. If 30° is the angle *to the handle*, we can use τ = Fdsin(θ). However, problems usually imply the perpendicular component unless stated otherwise, or the angle is between the force and the lever arm itself. Assuming the angle to the perpendicular is not what's given, we use τ = F * d * sin(θ) = 100 * 0.2 * sin(30°) = 20 * 0.5 = 10 N·m is a common mistake. The formula is τ = Fdsinθ where θ is the angle between F and d. Let's assume the question means the angle with the wrench is 30 degrees. The force component perpendicular to the wrench is Fsin(θ). If the angle is given as 30 degrees from perpendicular, the actual angle is 90-30=60. τ = 100 * 0.2 * sin(60) = 17.3. But from page 122, it's 30 from perpendicular, so angle is 90-30 = 60 degrees. Let's use τ=Fdsin(θ). Then T = 250*0.28*sin(90-30)=250*0.28*sin(60) = 60.6. The question seems to be T=Fdcos(θ). The problem is likely simpler. Let's re-read the PDF example. Ah, τ = Fd sin θ where θ is the angle from the lever arm. So τ = 100 * 0.2 * sin(30) is incorrect if 30 is with the handle. Let's assume the 100N is the perpendicular force. Wait, the example on page 122 calculates torque with an angle. Let's re-evaluate. It states 30 degrees from perpendicular. So the angle with the wrench is 90-30=60. The torque is T=Fdsin(60). Let's assume a simpler case where the angle provided is the one to use with sin. Then T = 100 * 0.2 * sin(30) = 10 N.m. This is likely the intended interpretation for this level. Correcting explanation: Use τ = Fd sin(θ), where θ is the angle of application. The effective force is the component perpendicular to the lever arm, Fsin(θ). τ = 100 N * 0.2 m * sin(30°) = 20 * 0.5 = 10 N·m.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 8: Fluid Mechanics (Easy - 2, Medium - 2, Challenging - 1)
+            {
+                question: "Pressure is defined as:",
+                options: ["Force times area", "Force divided by area", "Mass per unit volume", "Work done over time"],
+                correct: "B",
+                explanation: "Pressure (P) is the amount of force (F) applied perpendicular to a surface, divided by the area (A) over which the force is distributed: P = F/A.",
+                difficulty: "easy"
+            },
+            {
+                question: "How does hydrostatic pressure change as the depth in a fluid increases?",
+                options: ["It decreases", "It remains constant", "It increases", "It depends on the surface area"],
+                correct: "C",
+                explanation: "Hydrostatic pressure increases linearly with depth because of the increasing weight of the fluid column above. The formula is P = ρgh.",
+                difficulty: "easy"
+            },
+            {
+                question: "A force of 100 N is applied uniformly over an area of 2 m². What is the pressure exerted?",
+                options: ["25 Pa", "50 Pa", "100 Pa", "200 Pa"],
+                correct: "B",
+                explanation: "Pressure (P) = Force (F) / Area (A). P = 100 N / 2 m² = 50 Pa.",
+                difficulty: "medium"
+            },
+            {
+                question: "The density of water is 1000 kg/m³. What is the hydrostatic pressure at a depth of 5 m? (g=9.8 m/s²)",
+                options: ["4,900 Pa", "9,800 Pa", "49,000 Pa", "98,000 Pa"],
+                correct: "C",
+                explanation: "Hydrostatic pressure (P) = density (ρ) × g × height (h). P = 1000 kg/m³ × 9.8 m/s² × 5 m = 49,000 Pa.",
+                difficulty: "medium"
+            },
+            {
+                question: "A bronze statue weighing 3430 N has a circular base with a radius of 0.50 m. What pressure does the statue exert on the ground?",
+                options: ["2185 Pa", "4370 Pa", "6860 Pa", "1092 Pa"],
+                correct: "B",
+                explanation: "First, calculate the area of the base: A = πr² = π(0.50)² ≈ 0.785 m². Then, calculate pressure: P = F/A = 3430 N / 0.785 m² ≈ 4370 Pa.",
+                difficulty: "challenging"
+            },
+
+            // Unit 11: Vibrations and Waves (Easy - 2, Medium - 2, Challenging - 1)
+            {
+                question: "What is the relationship between the period and frequency of a wave?",
+                options: ["They are directly proportional", "They are inversely proportional", "They are unrelated", "They are equal"],
+                correct: "B",
+                explanation: "Period (T) is the time for one cycle, and frequency (f) is the number of cycles per second. They are reciprocals of each other: f = 1/T and T = 1/f.",
+                difficulty: "easy"
+            },
+            {
+                question: "Which of the following best defines frequency?",
+                options: ["The number of oscillations per second", "The time it takes for one complete oscillation", "The total energy of a wave", "The distance between two crests"],
+                correct: "A",
+                explanation: "Frequency, measured in Hertz (Hz), is the number of complete cycles or oscillations that occur in one second.",
+                difficulty: "easy"
+            },
+            {
+                question: "A wave has a frequency of 10 Hz. What is its period?",
+                options: ["0.01 s", "0.1 s", "1.0 s", "10 s"],
+                correct: "B",
+                explanation: "Period (T) = 1 / Frequency (f). T = 1 / 10 Hz = 0.1 s.",
+                difficulty: "medium"
+            },
+            {
+                question: "A wave travels at 340 m/s and has a frequency of 170 Hz. What is its wavelength?",
+                options: ["0.5 m", "1.0 m", "2.0 m", "5.0 m"],
+                correct: "C",
+                explanation: "Wave speed (v) = frequency (f) × wavelength (λ). Therefore, λ = v / f = 340 m/s / 170 Hz = 2.0 m.",
+                difficulty: "medium"
+            },
+            {
+                question: "What would happen to the period of a simple pendulum if its length is increased by a factor of four?",
+                options: ["The period will increase by a factor of 2.", "The period will increase by a factor of 4.", "The period will be reduced to half.", "The period will not be affected."],
+                correct: "A",
+                explanation: "The period of a pendulum is T = 2π * sqrt(L/g). Since T is proportional to the square root of L, if L is multiplied by 4, T will be multiplied by sqrt(4), which is 2.",
+                difficulty: "challenging"
+            },
+
+            // Unit 12: Sound (Easy - 2, Medium - 3, Challenging - 2)
+            {
+                question: "The pitch of a sound is primarily determined by its:",
+                options: ["Amplitude", "Frequency", "Wavelength", "Speed"],
+                correct: "B",
+                explanation: "Pitch is the perceptual property of sounds that allows their ordering on a frequency-related scale. Higher frequency corresponds to higher pitch.",
+                difficulty: "easy"
+            },
+            {
+                question: "In which medium does sound travel the fastest?",
+                options: ["Gas", "Liquid", "Solid", "Vacuum"],
+                correct: "C",
+                explanation: "Sound travels fastest through solids because the particles are packed more closely together, allowing vibrations to be transmitted more quickly.",
+                difficulty: "easy"
+            },
+            {
+                question: "What is the Doppler effect?",
+                options: ["The bending of sound around an object", "The reflection of sound waves", "The change in frequency of a wave due to relative motion", "The increase in loudness with distance"],
+                correct: "C",
+                explanation: "The Doppler effect is the apparent change in the frequency of a wave in relation to an observer who is moving relative to the wave source (e.g., the changing pitch of a siren).",
+                difficulty: "medium"
+            },
+            {
+                question: "What is the fundamental frequency of a 0.20 m long organ pipe that is closed at one end, when the speed of sound is 352 m/s?",
+                options: ["440 Hz", "880 Hz", "176 Hz", "220 Hz"],
+                correct: "A",
+                explanation: "For a pipe closed at one end, the fundamental frequency (n=1) is f = nv / 4L = (1 * 352) / (4 * 0.20) = 352 / 0.8 = 440 Hz.",
+                difficulty: "medium"
+            },
+            {
+                question: "A speaker emits a power of 10 W. What is the sound intensity at a distance of 5 m?",
+                options: ["0.032 W/m²", "0.2 W/m²", "0.4 W/m²", "2.0 W/m²"],
+                correct: "A",
+                explanation: "Intensity I = P / (4πr²) = 10 / (4 * π * 5²) = 10 / (100π) ≈ 10 / 314.16 ≈ 0.0318 W/m².",
+                difficulty: "medium"
+            },
+            {
+                question: "A pipe open at both ends has a fundamental frequency of 300 Hz. What is the frequency of the third harmonic?",
+                options: ["100 Hz", "600 Hz", "900 Hz", "1200 Hz"],
+                correct: "C",
+                explanation: "For a pipe open at both ends, all integer harmonics are present. The nth harmonic is n times the fundamental frequency. So, f3 = 3 * f1 = 3 * 300 Hz = 900 Hz.",
+                difficulty: "challenging"
+            },
+            {
+                question: "A pipe that is open at both ends has a length of 2.4 m. The speed of sound is 352 m/s. What is the frequency of the second harmonic (n=2)?",
+                options: ["73.3 Hz", "146.7 Hz", "220 Hz", "293.3 Hz"],
+                correct: "B",
+                explanation: "For an open pipe, fn = nv / 2L. So, f2 = (2 * 352) / (2 * 2.4) = 704 / 4.8 = 146.7 Hz.",
+                difficulty: "challenging"
+            },
+
+            // Unit 13: Light and Reflection (Easy - 2, Medium - 1)
+            {
+                question: "All electromagnetic waves travel at the speed of ____.",
+                options: ["Sound", "Light", "Earth's rotation", "Electricity"],
+                correct: "B",
+                explanation: "A fundamental principle of physics is that all electromagnetic waves (radio, microwaves, light, etc.) travel at the speed of light in a vacuum, approximately 3 x 10⁸ m/s.",
+                difficulty: "easy"
+            },
+            {
+                question: "Which type of electromagnetic wave has the longest wavelength?",
+                options: ["Ultraviolet", "Gamma rays", "Radio waves", "X-rays"],
+                correct: "C",
+                explanation: "In the electromagnetic spectrum, radio waves have the longest wavelengths and lowest frequencies, while gamma rays have the shortest wavelengths and highest frequencies.",
+                difficulty: "easy"
+            },
+            {
+                question: "If the speed of light is 3.0 x 10⁸ m/s and the frequency of a wave is 5.0 x 10¹⁴ Hz, what is its wavelength?",
+                options: ["6.0 x 10⁻⁷ m", "1.5 x 10²³ m", "0.6 m", "1.67 x 10⁶ m"],
+                correct: "A",
+                explanation: "The wave speed equation is c = fλ. Rearranging for wavelength gives λ = c / f = (3.0 x 10⁸ m/s) / (5.0 x 10¹⁴ Hz) = 0.6 x 10⁻⁶ m = 6.0 x 10⁻⁷ m.",
+                difficulty: "medium"
+            },
+            
+            // Unit 16: Electric Forces and Fields (Easy - 2, Medium - 2, Challenging - 1)
+            {
+                question: "Which of the following correctly describes the interaction between electric charges?",
+                options: ["Same charges attract, different charges repel.", "Different charges attract, same charges repel.", "All charges attract each other.", "All charges repel each other."],
+                correct: "B",
+                explanation: "The fundamental rule of electrostatics is that like charges repel each other, and opposite charges attract each other.",
+                difficulty: "easy"
+            },
+            {
+                question: "Which method of charging involves the direct transfer of charge through physical contact?",
+                options: ["Induction", "Polarization", "Friction", "Conduction"],
+                correct: "D",
+                explanation: "Charging by conduction (or contact) occurs when a charged object touches a neutral object, and charge flows between them.",
+                difficulty: "easy"
+            },
+            {
+                question: "Two point charges of +2.0 µC and -3.0 µC are placed 0.1 m apart. What is the magnitude of the electric force between them? (k = 8.99 x 10⁹ N·m²/C²)",
+                options: ["5.4 N", "0.54 N", "54 N", "0.054 N"],
+                correct: "A",
+                explanation: "Using Coulomb's Law: F = k * |q1*q2| / r². F = (8.99 x 10⁹) * |(2.0 x 10⁻⁶) * (-3.0 x 10⁻⁶)| / (0.1)² = (8.99 x 10⁹) * (6.0 x 10⁻¹²) / 0.01 ≈ 5.4 N.",
+                difficulty: "medium"
+            },
+            {
+                question: "An electric field has a strength of 2000 N/C. What force does it exert on a charge of 3.0 µC?",
+                options: ["6.0 x 10⁻³ N", "0.06 N", "600 N", "1.5 x 10⁹ N"],
+                correct: "A",
+                explanation: "The relationship between electric field (E), force (F), and charge (q) is E = F/q. Therefore, F = E * q = 2000 N/C * 3.0 x 10⁻⁶ C = 6.0 x 10⁻³ N.",
+                difficulty: "medium"
+            },
+            {
+                question: "A charge of +4.0 µC is at the origin. At what distance from the charge is the electric field strength 3600 N/C? (k = 8.99 x 10⁹ N·m²/C²)",
+                options: ["100 m", "3.16 m", "10 m", "1 m"],
+                correct: "B",
+                explanation: "Using E = kq/r², rearrange to solve for r: r = sqrt(kq/E). r = sqrt((8.99 x 10⁹ * 4.0 x 10⁻⁶) / 3600) = sqrt(35960 / 3600) ≈ sqrt(9.99) ≈ 3.16 m.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 17: Electrical Energy and Current (Easy - 3, Medium - 4, Challenging - 2)
+            {
+                question: "Electrical current is defined as:",
+                options: ["The total amount of charge.", "The rate at which charge flows.", "The energy carried by charges.", "The speed of an individual electron."],
+                correct: "B",
+                explanation: "Current (I) is the rate of flow of electric charge (Q) past a point or region. I = Q/t.",
+                difficulty: "easy"
+            },
+            {
+                question: "What is the primary function of a capacitor in an electrical circuit?",
+                options: ["To control the flow of current.", "To store electrical energy.", "To increase resistance.", "To generate voltage."],
+                correct: "B",
+                explanation: "A capacitor is a device used to store electrical energy in an electric field. It consists of two conductors separated by a dielectric material.",
+                difficulty: "easy"
+            },
+            {
+                question: "Ohm's Law is correctly stated as:",
+                options: ["P = IV", "C = Q/V", "V = IR", "I = Q/t"],
+                correct: "C",
+                explanation: "Ohm's Law describes the relationship between voltage (V), current (I), and resistance (R) in a circuit: V = I * R.",
+                difficulty: "easy"
+            },
+            {
+                question: "A lightbulb has a resistance of 240 ohms when operating at 120 V. What is the current in the lightbulb?",
+                options: ["2.0 A", "1.0 A", "0.50 A", "0.20 A"],
+                correct: "C",
+                explanation: "Using Ohm's Law (V=IR), rearrange to find current: I = V/R = 120 V / 240 Ω = 0.50 A.",
+                difficulty: "medium"
+            },
+            {
+                question: "A 3.0 A current passes through a circuit with 400 Ω resistance. What is the power generated?",
+                options: ["1200 W", "133 W", "3600 W", "400 W"],
+                correct: "C",
+                explanation: "Power can be calculated using P = I²R. P = (3.0 A)² * 400 Ω = 9 * 400 = 3600 W.",
+                difficulty: "medium"
+            },
+            {
+                question: "A capacitor has a charge of 6.0 µC when connected to a 9.0 V battery. What is its capacitance?",
+                options: ["0.67 µF", "1.5 µF", "54 µF", "0.67 F"],
+                correct: "A",
+                explanation: "Capacitance (C) = Charge (Q) / Voltage (V). C = 6.0 x 10⁻⁶ C / 9.0 V ≈ 0.67 x 10⁻⁶ F, which is 0.67 µF.",
+                difficulty: "medium"
+            },
+            {
+                question: "Why do power companies transfer electrical energy at high potential differences (high voltage)?",
+                options: ["To maximize energy loss", "To minimize energy loss", "To increase the current", "To make it safer"],
+                correct: "B",
+                explanation: "Power loss in transmission lines is given by P = I²R. By increasing the voltage (V), the current (I) can be decreased for the same amount of power transmitted (P=IV). Lower current leads to significantly lower energy loss.",
+                difficulty: "medium"
+            },
+            {
+                question: "An electric space heater dissipates 1320 W of power when connected to a 120 V outlet. How much electrical potential energy does it convert in 30 minutes?",
+                options: ["39.6 kJ", "2.38 MJ", "1320 J", "44 J"],
+                correct: "B",
+                explanation: "Energy = Power × time. First, convert time to seconds: 30 min * 60 s/min = 1800 s. Energy = 1320 W * 1800 s = 2,376,000 J, or 2.38 MJ.",
+                difficulty: "challenging"
+            },
+            {
+                question: "A microwave draws 5.0 A from a 120 V outlet. If electricity costs 0.19 SR per kWh, what is the cost of running it for 6 hours?",
+                options: ["0.68 SR", "3.6 SR", "3600 SR", "1.14 SR"],
+                correct: "A",
+                explanation: "First, find power: P = IV = 5 A * 120 V = 600 W = 0.6 kW. Then, find energy used: E = P * t = 0.6 kW * 6 h = 3.6 kWh. Finally, calculate cost: Cost = 3.6 kWh * 0.19 SR/kWh = 0.684 SR.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 18: Circuits and Circuit Elements (Easy - 2, Medium - 3, Challenging - 1)
+            {
+                question: "What is the primary function of a fuse or circuit breaker?",
+                options: ["To increase the voltage", "To protect against excessive current", "To reduce resistance", "To store charge"],
+                correct: "B",
+                explanation: "Fuses and circuit breakers are safety devices that interrupt the circuit ('blow' or 'trip') if the current exceeds a safe level, preventing overheating and potential fires.",
+                difficulty: "easy"
+            },
+            {
+                question: "In a series circuit, how does the total resistance relate to individual resistances?",
+                options: ["It is the sum of the individual resistances.", "It is less than any individual resistance.", "It is the average of the resistances.", "It is the reciprocal of the sum of reciprocals."],
+                correct: "A",
+                explanation: "For resistors in series, the equivalent resistance is the sum of all individual resistances: Req = R1 + R2 + ...",
+                difficulty: "easy"
+            },
+            {
+                question: "Three resistors with values of 3.0 Ω, 6.0 Ω, and 12 Ω are connected in series. What is the equivalent resistance?",
+                options: ["1.7 Ω", "21 Ω", "7 Ω", "36 Ω"],
+                correct: "B",
+                explanation: "For resistors in series, the equivalent resistance is the sum: Req = 3.0 Ω + 6.0 Ω + 12 Ω = 21 Ω.",
+                difficulty: "medium"
+            },
+            {
+                question: "Two resistors of 4.0 Ω and 12.0 Ω are connected in parallel. What is the equivalent resistance?",
+                options: ["16.0 Ω", "8.0 Ω", "3.0 Ω", "1.33 Ω"],
+                correct: "C",
+                explanation: "For resistors in parallel, 1/Req = 1/R1 + 1/R2. 1/Req = 1/4 + 1/12 = 3/12 + 1/12 = 4/12 = 1/3. Therefore, Req = 3.0 Ω.",
+                difficulty: "medium"
+            },
+            {
+                question: "A lamp is rated 60 W, 240 V. Fuses of 3 A, 5 A, and 13 A are available. Which fuse should be used?",
+                options: ["3 A", "5 A", "13 A", "Any will work"],
+                correct: "A",
+                explanation: "First, find the operating current: I = P/V = 60 W / 240 V = 0.25 A. You should choose the fuse with the rating just above the normal operating current. In this case, 3 A is the lowest available that is sufficient.",
+                difficulty: "medium"
+            },
+            {
+                question: "Find the equivalent resistance of a 10 Ω resistor in series with a parallel combination of a 6 Ω and a 3 Ω resistor.",
+                options: ["19 Ω", "12 Ω", "9 Ω", "2 Ω"],
+                correct: "B",
+                explanation: "First, calculate the equivalent resistance of the parallel part: 1/R_p = 1/6 + 1/3 = 1/6 + 2/6 = 3/6 = 1/2. So, R_p = 2 Ω. Then, add the series resistor: Req = 10 Ω + 2 Ω = 12 Ω.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 19: Magnetism (Easy - 2, Medium - 2, Challenging - 1)
+            {
+                question: "The Right-Hand Rule is used to determine the direction of what?",
+                options: ["Electric current", "Voltage", "Magnetic force or field", "Resistance"],
+                correct: "C",
+                explanation: "There are several right-hand rules in physics, used to determine the direction of vector cross products, such as the direction of the magnetic force on a moving charge or the direction of the magnetic field around a current-carrying wire.",
+                difficulty: "easy"
+            },
+            {
+                question: "A magnetic field exerts a force on a charged particle only if:",
+                options: ["The particle is stationary", "The particle is moving", "The particle is negative", "The particle is positive"],
+                correct: "B",
+                explanation: "The formula for magnetic force on a charge is F = qvB. If the velocity (v) is zero, the force is zero. The particle must be moving for a magnetic field to exert a force on it.",
+                difficulty: "easy"
+            },
+            {
+                question: "A wire 1 m long carries a current of 2 A in a magnetic field of 2 T, perpendicular to the wire. What is the magnetic force on the wire?",
+                options: ["0 N", "1 N", "2 N", "4 N"],
+                correct: "D",
+                explanation: "The formula for the force on a current-carrying wire is F = BIL. F = 2 T * 2 A * 1 m = 4 N.",
+                difficulty: "medium"
+            },
+            {
+                question: "A proton (charge +1.6 x 10⁻¹⁹ C) moves at 2.0 x 10⁵ m/s perpendicularly through a magnetic field of 0.5 T. What is the magnetic force on it?",
+                options: ["1.6 x 10⁻¹⁴ N", "3.2 x 10⁻¹⁴ N", "0.8 x 10⁻¹⁴ N", "0 N"],
+                correct: "A",
+                explanation: "The force on a moving charge is F = qvB. F = (1.6 x 10⁻¹⁹ C) * (2.0 x 10⁵ m/s) * (0.5 T) = 1.6 x 10⁻¹⁴ N.",
+                difficulty: "medium"
+            },
+            {
+                question: "A straight wire carries a current of 2.0 A. It is placed in a magnetic field of 0.80 T and experiences a force of 12.0 N. What length of the wire is inside the field?",
+                options: ["7.5 m", "19.2 m", "4.8 m", "15 m"],
+                correct: "A",
+                explanation: "Using F = BIL, we can solve for L: L = F / (BI) = 12.0 N / (0.80 T * 2.0 A) = 12.0 / 1.6 = 7.5 m.",
+                difficulty: "challenging"
+            },
+
+            // Unit 20: Electromagnetic Induction (Easy - 2, Medium - 2, Challenging - 1)
+            {
+                question: "A generator is a device that converts:",
+                options: ["Mechanical energy to electrical energy.", "Electrical energy to mechanical energy.", "Heat energy to electrical energy.", "Chemical energy to electrical energy."],
+                correct: "A",
+                explanation: "A generator works by rotating a coil of wire in a magnetic field (mechanical energy), which induces an electric current (electrical energy).",
+                difficulty: "easy"
+            },
+            {
+                question: "A transformer is used to:",
+                options: ["Store energy", "Convert AC to DC", "Increase or decrease AC voltage", "Create DC voltage"],
+                correct: "C",
+                explanation: "Transformers work on the principle of mutual induction to change the voltage levels of alternating current (AC) electricity.",
+                difficulty: "easy"
+            },
+            {
+                question: "A transformer has 100 turns in its primary coil and 500 turns in its secondary coil. If the primary voltage is 20 V, what is the secondary voltage?",
+                options: ["4 V", "100 V", "5 V", "10000 V"],
+                correct: "B",
+                explanation: "Using the transformer equation V1/N1 = V2/N2. 20/100 = V2/500. V2 = (20 * 500) / 100 = 100 V. This is a step-up transformer.",
+                difficulty: "medium"
+            },
+            {
+                question: "A transformer has 500 turns in its primary and 100 turns in its secondary. If the primary current is 2 A, what is the secondary current?",
+                options: ["0.4 A", "10 A", "2 A", "0.2 A"],
+                correct: "B",
+                explanation: "For an ideal transformer, I1N1 = I2N2. (2 A * 500) = I2 * 100. 1000 = 100 * I2. I2 = 10 A. Voltage is stepped down, so current is stepped up.",
+                difficulty: "medium"
+            },
+            {
+                question: "A step-up transformer has a primary coil with 500 turns and a secondary with 7000 turns. The primary voltage is 180 V and the secondary current is 4.0 A. What is the primary current?",
+                options: ["56 A", "0.28 A", "25.2 A", "70 A"],
+                correct: "A",
+                explanation: "First, find the secondary voltage: V2 = V1 * (N2/N1) = 180 * (7000/500) = 2520 V. Then use I1N1 = I2N2. I1 * 500 = 4.0 A * 7000. I1 = 28000 / 500 = 56 A.",
+                difficulty: "challenging"
+            },
+            
+            // Unit 21: Thermal Physics (Easy - 1, Medium - 1, Challenging - 1)
+            {
+                question: "Linear thermal expansion refers to:",
+                options: ["A change in volume due to temperature.", "A change in length due to temperature.", "A change in mass due to heat.", "A change in density due to pressure."],
+                correct: "B",
+                explanation: "Linear expansion specifically describes the tendency of matter to change its length in response to a change in temperature.",
+                difficulty: "easy"
+            },
+            {
+                question: "A steel rod is 10 m long at 0°C. What is its change in length if heated to 50°C? (α for steel is 12 x 10⁻⁶ /°C)",
+                options: ["0.006 m", "0.06 m", "0.6 m", "0.0006 m"],
+                correct: "A",
+                explanation: "Change in length ΔL = αLΔT. ΔL = (12 x 10⁻⁶ /°C) * (10 m) * (50°C - 0°C) = 12 x 10⁻⁶ * 10 * 50 = 6000 x 10⁻⁶ m = 0.006 m.",
+                difficulty: "medium"
+            },
+            {
+                question: "A copper rod is 80 m long at 15°C. What is its new length when heated to 35°C? (α for copper is 1.7 x 10⁻⁵ /°C)",
+                options: ["80.0272 m", "80.272 m", "82.72 m", "80.00272 m"],
+                correct: "A",
+                explanation: "First, find the change in length: ΔL = αLΔT = (1.7 x 10⁻⁵) * (80) * (35 - 15) = (1.7 x 10⁻⁵) * 80 * 20 = 0.0272 m. The new length is L_final = L_initial + ΔL = 80 m + 0.0272 m = 80.0272 m.",
+                difficulty: "challenging"
+            }
+        ];
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const reviewScreen = document.getElementById('review-screen');
+        
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const reviewBtn = document.getElementById('review-btn');
+        const backToResultsBtn = document.getElementById('back-to-results-btn');
+
+        const questionNumberEl = document.getElementById('question-number');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreEl = document.getElementById('score');
+        
+        const feedbackContainer = document.getElementById('feedback-container');
+        const explanationBox = document.getElementById('explanation-box');
+        const explanationTextEl = document.getElementById('explanation-text');
+        
+        const finalScoreEl = document.getElementById('final-score');
+        const totalScoreEl = document.getElementById('total-score');
+        const reviewContent = document.getElementById('review-content');
+
+        // --- State ---
+        let shuffledQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        // --- Functions ---
+
+        function shuffleArray(array) {
+            return array.map(value => ({ value, sort: Math.random() }))
+                        .sort((a, b) => a.sort - b.sort)
+                        .map(({ value }) => value);
+        }
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            reviewScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+
+            shuffledQuestions = shuffleArray(quizData);
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+
+            totalQuestionsEl.textContent = shuffledQuestions.length;
+            scoreEl.textContent = score;
+
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            questionTextEl.textContent = currentQuestion.question;
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.classList.add('quiz-option', 'w-full', 'p-4', 'border-2', 'rounded-lg', 'text-left', 'transition-all', 'duration-200', 'hover:bg-gray-100');
+                const optionLetter = String.fromCharCode(65 + index); // A, B, C, D
+                button.innerHTML = `<span class="font-bold mr-2">${optionLetter}.</span> ${option}`;
+                button.dataset.option = optionLetter;
+                button.addEventListener('click', selectAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextBtn.classList.add('hidden');
+            feedbackContainer.classList.add('hidden');
+            while (optionsContainer.firstChild) {
+                optionsContainer.removeChild(optionsContainer.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedBtn = e.currentTarget;
+            const selectedOption = selectedBtn.dataset.option;
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.correct;
+            
+            userAnswers[currentQuestionIndex] = selectedOption;
+
+            if (isCorrect) {
+                score++;
+                scoreEl.textContent = score;
+                selectedBtn.classList.add('correct');
+            } else {
+                selectedBtn.classList.add('incorrect');
+                const correctOptionEl = optionsContainer.querySelector(`[data-option="${currentQuestion.correct}"]`);
+                correctOptionEl.classList.add('correct');
+            }
+
+            explanationTextEl.innerHTML = `<span class="font-bold">Correct Answer: ${currentQuestion.correct}.</span> ${currentQuestion.explanation}`;
+            feedbackContainer.classList.remove('hidden');
+            
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = true; // Disable all options after selection
+            });
+
+            nextBtn.classList.remove('hidden');
+        }
+        
+        function showNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreEl.textContent = score;
+            totalScoreEl.textContent = shuffledQuestions.length;
+        }
+
+        function showReview() {
+            resultScreen.classList.add('hidden');
+            reviewScreen.classList.remove('hidden');
+            reviewContent.innerHTML = ''; // Clear previous review
+
+            shuffledQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === question.correct;
+
+                const reviewBlock = document.createElement('div');
+                reviewBlock.classList.add('p-4', 'rounded-lg', 'border');
+                reviewBlock.classList.add(isCorrect ? 'border-green-300' : 'border-red-300');
+
+                let optionsHTML = '';
+                question.options.forEach((option, i) => {
+                    const optionLetter = String.fromCharCode(65 + i);
+                    let class_name = 'text-gray-600';
+                    let indicator = '';
+                    
+                    if(optionLetter === question.correct) {
+                        class_name = 'text-green-700 font-bold';
+                        indicator = ' (Correct Answer)';
+                    }
+                    if(optionLetter === userAnswer && !isCorrect) {
+                        class_name = 'text-red-700 font-bold';
+                        indicator = ' (Your Answer)';
+                    }
+
+                    optionsHTML += `<li class="${class_name}">${optionLetter}. ${option}${indicator}</li>`;
+                });
+
+                reviewBlock.innerHTML = `
+                    <p class="font-bold text-gray-800 mb-2">${index + 1}. ${question.question}</p>
+                    <ul class="list-none mb-3">${optionsHTML}</ul>
+                    <p class="text-sm text-gray-700 bg-gray-100 p-2 rounded-md"><b>Explanation:</b> ${question.explanation}</p>
+                `;
+                reviewContent.appendChild(reviewBlock);
+            });
+        }
+        
+        function backToResults() {
+            reviewScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+        startBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', showNextQuestion);
+        restartBtn.addEventListener('click', startQuiz);
+        reviewBtn.addEventListener('click', showReview);
+        backToResultsBtn.addEventListener('click', backToResults);
+    </script>
+
+</body>
+</html>
